@@ -1,16 +1,25 @@
 # Distributed Transaction Patterns: A Comprehensive Guide
 
+## Navigation
+- **You are here**: Main Guide
+- [Theoretical Foundations](dxp-04-theoretical-foundations.md) - Why these patterns exist
+- [Technical Deep Dive](dxp-02-deep-dive.md) - Implementation details
+- [Sequence Diagrams](dxp-03-sequence-diagrams.md) - Visual representations
+- [Pattern Modifiers](dxp-05-pattern-modifiers.md) - Optional enhancements
+- [Evolution Guide](dxp-06-evolution-guide.md) - Growing with patterns
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [The Challenge of Distributed Transactions](#the-challenge)
 3. [The Phase Spectrum](#the-phase-spectrum)
 4. [Pattern Deep Dives](#pattern-deep-dives)
-5. [Performance Analysis](#performance-analysis)
-6. [Safety and Consistency Guarantees](#safety-guarantees)
-7. [Pattern Selection Guide](#pattern-selection)
-8. [Implementation Considerations](#implementation)
-9. [Real-World Applications](#real-world)
-10. [Key Insights and Conclusions](#conclusions)
+5. [Pattern Modifiers](#pattern-modifiers)
+6. [Performance Analysis](#performance-analysis)
+7. [Safety and Consistency Guarantees](#safety-guarantees)
+8. [Pattern Selection Guide](#pattern-selection)
+9. [Implementation Considerations](#implementation)
+10. [Real-World Applications](#real-world)
+11. [Key Insights and Conclusions](#conclusions)
 
 ---
 
@@ -30,6 +39,14 @@ Distributed transaction patterns can be understood as a spectrum based on the nu
 - **3 phases**: Maximum flexibility with reserve, validate, and execute stages
 
 This phase-based model provides vocabulary for patterns that developers implement repeatedly but often without recognition or formal understanding.
+
+### Theoretical Foundation: aci-D
+
+These patterns emerge from a fundamental reality: achieving full ACID properties across distributed services is impossible. Instead, we embrace **aci-D** (Atomicity, Consistency, Isolation-Deemphasized, Durability) - a pragmatic framework that acknowledges what's actually achievable in microservices. For a complete exploration of the theoretical foundations, see [dxp-04-theoretical-foundations.md](dxp-04-theoretical-foundations.md).
+
+### Alternative Terminology: Phased Sagas
+
+These patterns are sometimes referred to as "Phased Sagas" because they combine the autonomy of the Saga pattern with phase-based coordination, bridging the gap between traditional 2PC and pure Sagas.
 
 ---
 
@@ -244,7 +261,7 @@ Order Service → Notification: Send confirmation (fire-and-forget)
 - Parallel execution within each phase
 - Early failure detection in prepare phase
 - Simpler than 3PS
-- Fastest failure detection (only one gate)
+- Fastest failure detection (single gate)
 
 **Example Flow**:
 ```
@@ -312,7 +329,35 @@ Shipping:  Reserve → Validate → Execute
 
 ---
 
-## 5. Performance Analysis {#performance-analysis}
+## 5. Pattern Modifiers {#pattern-modifiers}
+
+### 5.5 Pattern Modifiers
+
+While the base patterns provide fundamental transaction approaches, real-world systems often need additional capabilities. Pattern modifiers are optional enhancements that can be applied to any base pattern without changing its core behavior.
+
+#### Available Modifiers
+
+1. **Optional Verification (OV)**: Add on-demand status checks between phases
+2. **Time-Bounded States (TBS)**: Automatic expiration of intermediate states
+3. **Geographic Affinity (GA)**: Optimize for multi-region deployments
+4. **Selective Consistency (SC)**: Different guarantees for different operations
+
+#### Example: High-Value Global Transaction
+```
+Pattern = 3PS + OV + TBS + GA
+
+This combines:
+- 3PS: For ACID-like guarantees
+- OV: Human approval checkpoints
+- TBS: Automatic cleanup after timeouts
+- GA: Regional processing optimization
+```
+
+For complete details on pattern modifiers, see [dxp-05-pattern-modifiers.md](dxp-05-pattern-modifiers.md).
+
+---
+
+## 6. Performance Analysis {#performance-analysis}
 
 ### Multi-Dimensional Performance
 
@@ -376,7 +421,7 @@ Service C: Reserve → Validate → Execute
 
 ---
 
-## 6. Safety and Consistency Guarantees {#safety-guarantees}
+## 7. Safety and Consistency Guarantees {#safety-guarantees}
 
 ### The Consistency Spectrum
 
@@ -443,7 +488,7 @@ This provides:
 
 ---
 
-## 7. Pattern Selection Guide {#pattern-selection}
+## 8. Pattern Selection Guide {#pattern-selection}
 
 ### Decision Tree
 
@@ -488,7 +533,7 @@ Need ACID guarantees?
 
 ---
 
-## 8. Implementation Considerations {#implementation}
+## 9. Implementation Considerations {#implementation}
 
 ### Core Abstractions
 
@@ -519,6 +564,34 @@ type StateStore interface {
     UpdateOperationStatus(txID, opID string, status Status, phase Phase) error
 }
 ```
+
+### Design Principles
+
+#### Conventions Over Protocols
+Rather than complex distributed protocols, these patterns rely on simple state conventions:
+- **Reserved**: Resources allocated but not consumed
+- **Committed**: Resources consumed and final
+- **Expired**: Automatic cleanup after timeout
+
+This approach is simpler and more resilient than protocol-based coordination. For theoretical background, see [dxp-04-theoretical-foundations.md](dxp-04-theoretical-foundations.md).
+
+#### State Expiration Patterns
+Every intermediate state should have automatic expiration:
+```go
+type ExpiringState struct {
+    Data      interface{}
+    ExpiresAt time.Time
+    OnExpire  func() error
+}
+```
+
+This prevents resource leaks and enables self-healing systems.
+
+#### Geographic Distribution Considerations
+For multi-region deployments:
+- Use regional coordinators to minimize cross-region calls
+- Apply Geographic Affinity (GA) modifier for data locality
+- Consider eventual consistency for cross-region operations
 
 ### Critical Implementation Details
 
@@ -571,7 +644,7 @@ type StateStore interface {
 
 ---
 
-## 9. Real-World Applications {#real-world}
+## 10. Real-World Applications {#real-world}
 
 ### E-commerce Order Processing
 
@@ -641,7 +714,7 @@ Long-running process with stages:
 
 ---
 
-## 10. Key Insights and Conclusions {#conclusions}
+## 11. Key Insights and Conclusions {#conclusions}
 
 ### The Paradigm Shift
 
@@ -670,6 +743,18 @@ Two-Phase Saga emerges as a potential sweet spot:
 - Better consistency than Saga
 
 Many systems currently struggling with Saga patterns might find 2PS the ideal upgrade.
+
+### aci-D vs ACID: A Realistic Framework
+
+The aci-D framework (Atomicity, Consistency, Isolation-Deemphasized, Durability) acknowledges what's actually achievable in distributed systems. By accepting reduced isolation and eventual consistency, we can build systems that are both scalable and reliable. See [dxp-04-theoretical-foundations.md](dxp-04-theoretical-foundations.md) for complete theoretical foundations.
+
+### Pattern Evolution is Natural
+
+Systems naturally evolve through these patterns as they grow. Starting simple and evolving based on actual needs is not only acceptable but recommended. The [Evolution Guide](dxp-06-evolution-guide.md) provides detailed guidance on this journey.
+
+### Pattern Modifiers Enable Flexibility
+
+The ability to enhance base patterns with modifiers (OV, TBS, GA, SC) means you can start simple and add capabilities as needed without changing your fundamental approach. This compositional model leads to cleaner, more maintainable systems.
 
 ### The Hidden Cost of Rediscovery
 
