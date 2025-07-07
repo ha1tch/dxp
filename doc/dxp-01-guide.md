@@ -312,7 +312,7 @@ Shipping:  Reserve → Validate → Execute
 // Services can be in different phases simultaneously
 ```
 
-**The Revolution**: 3PS enables atomic-like behavior across microservices without the blocking behavior of 2PC. Services make forward progress independently while still maintaining consistency through the validation phase.
+**The Improvement**: 3PS enables atomic-like behavior across microservices without the blocking behavior of 2PC. Services make forward progress independently while still maintaining consistency through the validation phase.
 
 **When to Use**:
 - High contention on shared resources
@@ -720,9 +720,9 @@ Long-running process with stages:
 
 The phase-based spectrum (0.5 → 3) provides a mental model for understanding distributed transactions that doesn't currently exist in the literature. Instead of viewing patterns as isolated solutions, we can see them as points on a continuum of trade-offs.
 
-### Revolutionary Potential of 3PS
+### The Advancement Potential of 3PS
 
-Three-Phase Saga represents a potential breakthrough: achieving ACID-like guarantees across microservices without distributed locking. By separating Reserve, Validate, and Execute phases, it enables:
+Three-Phase Saga represents potential advancement: achieving ACID-like guarantees across microservices without distributed locking. By separating Reserve, Validate, and Execute phases, it enables:
 - True parallel progress of services
 - Optimistic resource allocation
 - Pessimistic conflict detection

@@ -990,7 +990,7 @@ Create reusable learning materials:
 
 ## 10. Conclusions {#conclusions}
 
-### The Cognitive Revolution
+### The Cognitive Framework
 
 The Phase Spectrum represents more than technical patterns—it's a cognitive framework that fundamentally changes how teams think about distributed systems. By providing:
 
