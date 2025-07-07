@@ -791,6 +791,6 @@ Distributed transactions remain one of the hardest problems in computer science.
 
 The phase spectrum doesn't solve all problems, but it provides what's been missing: a vocabulary for discussing trade-offs, a framework for making decisions, and patterns that acknowledge the messy reality of distributed systems.
 
-Whether you need the iron-clad guarantees of 2PC, the flexibility of Saga, the pragmatism of 1.5PS, or the revolutionary potential of 3PS, understanding these patterns helps you make informed decisions rather than accidentally reinventing broken wheels.
+Whether you need the iron-clad guarantees of 2PC, the flexibility of Saga, the pragmatism of 1.5PS, or the utility potential of 3PS, understanding these patterns helps you make informed decisions rather than accidentally reinventing broken wheels.
 
 The key is recognizing that there's no universal "best" pattern - only the right pattern for your specific combination of consistency requirements, performance needs, and failure tolerance. The phase spectrum gives you the tools to make that choice intelligently.
