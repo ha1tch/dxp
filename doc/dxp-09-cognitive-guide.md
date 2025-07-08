@@ -1,5 +1,19 @@
 # Distributed Transaction Patterns: A Cognitive Guide
 
+## Why Cognition in a Technical Framework?
+
+Distributed transaction patterns are as much a human challenge as a technical one. The most elegant pattern is useless if teams can't understand, communicate about, or debug it effectively.
+
+This chapter steps back from technical details to address the cognitive aspects of working with distributed patterns. It is not introducing new patterns but rather exploring:
+- How naming enables understanding
+- Why vocabulary matters for debugging
+- How teams learn and evolve through patterns
+- The mental models that make patterns comprehensible
+
+If you're looking for technical pattern details, return to the main sequence. If you're struggling with team communication, debugging mysterious failures, or teaching these patterns to others, this chapter provides the cognitive framework that makes the technical patterns usable in practice.
+
+Consider this the "human factors" chapter because —at least for now— distributed systems are built by humans, debugged by humans, and maintained by humans. The patterns only work when the humans understand them.
+
 ## Navigation
 - [Main Guide](dxp-01-guide.md) - Start here
 - [Theoretical Foundations](dxp-04-theoretical-foundations.md) - Why these patterns exist
