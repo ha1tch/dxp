@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml>
+  <net type="http://www.informatik.hu-berlin.de/top/pntd/ptNetb" id="noID">
+    
+    <!-- Customer Entry Point -->
+    <place id="p_customer_order">
+      <name>
+        <text>Customer Order</text>
+        <graphics><offset x="50" y="140"/></graphics>
+      </name>
+      <graphics>
+        <position x="50" y="100"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <initialMarking>
+        <graphics>
+          <offset x="0" y="0"/>
+        </graphics>
+        <text>1</text>
+      </initialMarking>
+    </place>
+    
+    <!-- Coordinator States -->
+    <place id="p_coord_idle">
+      <name>
+        <text>Coordinator Idle</text>
+        <graphics><offset x="200" y="140"/></graphics>
+      </name>
+      <graphics>
+        <position x="200" y="100"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+    </place>
+    
+    <place id="p_reserving">
+      <name>
+        <text>Reserving</text>
+        <graphics><offset x="350" y="140"/></graphics>
+      </name>
+      <graphics>
+        <position x="350" y="100"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+    </place>
+    
+    <place id="p_validating">
+      <name>
+        <text>Validating</text>
+        <graphics><offset x="500" y="140"/></graphics>
+      </name>
+      <graphics>
+        <position x="500" y="100"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+    </place>
+    
+    <place id="p_executing">
+      <name>
+        <text>Executing</text>
+        <graphics><offset x="650" y="140"/></graphics>
+      </name>
+      <graphics>
+        <position x="650" y="100"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+    </place>
+    
+    <place id="p_completed">
+      <name>
+        <text>Order Complete</text>
+        <graphics><offset x="800" y="140"/></graphics>
+      </name>
+      <graphics>
+        <position x="800" y="100"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+    </place>
+    
+    <!-- Service States -->
+    <place id="p_payment_idle">
+      <name>
+        <text>Payment Idle</text>
+        <graphics><offset x="200" y="290"/></graphics>
+      </name>
+      <graphics>
+        <position x="200" y="250"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <initialMarking>
+        <graphics><offset x="0" y="0"/></graphics>
+        <text>1</text>
+      </initialMarking>
+    </place>
+    
+    <place id="p_payment_reserved">
+      <name>
+        <text>Payment Reserved</text>
+        <graphics><offset x="350" y="290"/></graphics>
+      </name>
+      <graphics>
+        <position x="350" y="250"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+    </place>
+    
+    <place id="p_inventory_idle">
+      <name>
+        <text>Inventory Idle</text>
+        <graphics><offset x="200" y="390"/></graphics>
+      </name>
+      <graphics>
+        <position x="200" y="350"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <initialMarking>
+        <graphics><offset x="0" y="0"/></graphics>
+        <text>1</text>
+      </initialMarking>
+    </place>
+    
+    <place id="p_inventory_reserved">
+      <name>
+        <text>Inventory Reserved</text>
+        <graphics><offset x="350" y="390"/></graphics>
+      </name>
+      <graphics>
+        <position x="350" y="350"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+    </place>
+    
+    <place id="p_shipping_idle">
+      <name>
+        <text>Shipping Idle</text>
+        <graphics><offset x="200" y="490"/></graphics>
+      </name>
+      <graphics>
+        <position x="200" y="450"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <initialMarking>
+        <graphics><offset x="0" y="0"/></graphics>
+        <text>1</text>
+      </initialMarking>
+    </place>
+    
+    <place id="p_shipping_reserved">
+      <name>
+        <text>Shipping Reserved</text>
+        <graphics><offset x="350" y="490"/></graphics>
+      </name>
+      <graphics>
+        <position x="350" y="450"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+    </place>
+    
+    <!-- Resources -->
+    <place id="p_available_funds">
+      <name>
+        <text>Available Funds</text>
+        <graphics><offset x="100" y="290"/></graphics>
+      </name>
+      <graphics>
+        <position x="100" y="250"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <initialMarking>
+        <graphics><offset x="0" y="0"/></graphics>
+        <text>1000</text>
+      </initialMarking>
+    </place>
+    
+    <place id="p_available_stock">
+      <name>
+        <text>Available Stock</text>
+        <graphics><offset x="100" y="390"/></graphics>
+      </name>
+      <graphics>
+        <position x="100" y="350"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <initialMarking>
+        <graphics><offset x="0" y="0"/></graphics>
+        <text>50</text>
+      </initialMarking>
+    </place>
+    
+    <!-- Message Places -->
+    <place id="p_reserve_msg">
+      <name>
+        <text>Reserve Messages</text>
+        <graphics><offset x="275" y="190"/></graphics>
+      </name>
+      <graphics>
+        <position x="275" y="150"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+    </place>
+    
+    <place id="p_validate_msg">
+      <name>
+        <text>Validate Messages</text>
+        <graphics><offset x="425" y="190"/></graphics>
+      </name>
+      <graphics>
+        <position x="425" y="150"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+    </place>
+    
+    <place id="p_execute_msg">
+      <name>
+        <text>Execute Messages</text>
+        <graphics><offset x="575" y="190"/></graphics>
+      </name>
+      <graphics>
+        <position x="575" y="150"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+    </place>
+    
+    <!-- Transitions -->
+    <transition id="t_start_order">
+      <name>
+        <text>Start Order</text>
+        <graphics><offset x="125" y="110"/></graphics>
+      </name>
+      <graphics>
+        <position x="125" y="100"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="WoPeD" version="1.0">
+        <time>0</time>
+        <timeUnit>1</timeUnit>
+        <orientation>1</orientation>
+      </toolspecific>
+    </transition>
+    
+    <transition id="t_send_reserve">
+      <name>
+        <text>Send Reserve</text>
+        <graphics><offset x="275" y="110"/></graphics>
+      </name>
+      <graphics>
+        <position x="275" y="100"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="WoPeD" version="1.0">
+        <time>0</time>
+        <timeUnit>1</timeUnit>
+        <orientation>1</orientation>
+      </toolspecific>
+    </transition>
+    
+    <!-- Service Transitions -->
+    <transition id="t_payment_reserve">
+      <name>
+        <text>Reserve Payment</text>
+        <graphics><offset x="275" y="260"/></graphics>
+      </name>
+      <graphics>
+        <position x="275" y="250"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="WoPeD" version="1.0">
+        <time>0</time>
+        <timeUnit>1</timeUnit>
+        <orientation>1</orientation>
+      </toolspecific>
+    </transition>
+    
+    <transition id="t_inventory_reserve">
+      <name>
+        <text>Reserve Inventory</text>
+        <graphics><offset x="275" y="360"/></graphics>
+      </name>
+      <graphics>
+        <position x="275" y="350"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="WoPeD" version="1.0">
+        <time>0</time>
+        <timeUnit>1</timeUnit>
+        <orientation>1</orientation>
+      </toolspecific>
+    </transition>
+    
+    <transition id="t_shipping_reserve">
+      <name>
+        <text>Reserve Shipping</text>
+        <graphics><offset x="275" y="460"/></graphics>
+      </name>
+      <graphics>
+        <position x="275" y="450"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="WoPeD" version="1.0">
+        <time>0</time>
+        <timeUnit>1</timeUnit>
+        <orientation>1</orientation>
+      </toolspecific>
+    </transition>
+    
+    <!-- Subnet for detailed payment flow -->
+    <transition id="payment_subprocess">
+      <name>
+        <text>Payment Details</text>
+        <graphics><offset x="500" y="260"/></graphics>
+      </name>
+      <graphics>
+        <position x="500" y="250"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="WoPeD" version="1.0">
+        <subprocess>true</subprocess>
+        <time>0</time>
+        <timeUnit>1</timeUnit>
+        <orientation>1</orientation>
+      </toolspecific>
+    </transition>
+    
+    <!-- Arcs -->
+    <arc id="a1" source="p_customer_order" target="t_start_order">
+      <inscription>
+        <text>1</text>
+        <graphics><offset x="0" y="0"/></graphics>
+      </inscription>
+      <graphics/>
+    </arc>
+    
+    <arc id="a2" source="t_start_order" target="p_coord_idle">
+      <inscription>
+        <text>1</text>
+        <graphics><offset x="0" y="0"/></graphics>
+      </inscription>
+      <graphics/>
+    </arc>
+    
+    <arc id="a3" source="p_coord_idle" target="t_send_reserve">
+      <inscription>
+        <text>1</text>
+        <graphics><offset x="0" y="0"/></graphics>
+      </inscription>
+      <graphics/>
+    </arc>
+    
+    <arc id="a4" source="t_send_reserve" target="p_reserving">
+      <inscription>
+        <text>1</text>
+        <graphics><offset x="0" y="0"/></graphics>
+      </inscription>
+      <graphics/>
+    </arc>
+    
+    <arc id="a5" source="t_send_reserve" target="p_reserve_msg">
+      <inscription>
+        <text>3</text>
+        <graphics><offset x="0" y="0"/></graphics>
+      </inscription>
+      <graphics/>
+    </arc>
+    
+    <!-- Service arcs -->
+    <arc id="a6" source="p_reserve_msg" target="t_payment_reserve">
+      <inscription>
+        <text>1</text>
+        <graphics><offset x="0" y="0"/></graphics>
+      </inscription>
+      <graphics/>
+    </arc>
+    
+    <arc id="a7" source="p_payment_idle" target="t_payment_reserve">
+      <inscription>
+        <text>1</text>
+        <graphics><offset x="0" y="0"/></graphics>
+      </inscription>
+      <graphics/>
+    </arc>
+    
+    <arc id="a8" source="p_available_funds" target="t_payment_reserve">
+      <inscription>
+        <text>100</text>
+        <graphics><offset x="0" y="0"/></graphics>
+      </inscription>
+      <graphics/>
+    </arc>
+    
+    <arc id="a9" source="t_payment_reserve" target="p_payment_reserved">
+      <inscription>
+        <text>1</text>
+        <graphics><offset x="0" y="0"/></graphics>
+      </inscription>
+      <graphics/>
+    </arc>
+    
+    <!-- Similar for inventory and shipping -->
+    
+    <toolspecific tool="WoPeD" version="3.9.2">
+      <bounds>
+        <position x="2" y="25"/>
+        <dimension x="1000" y="600"/>
+      </bounds>
+      <scale>100</scale>
+    </toolspecific>
+    
+    <!-- Subnet definition -->
+    <page id="payment_subprocess">
+      <net>
+        <place id="sub_p1">
+          <name>
+            <text>Payment Start</text>
+            <graphics><offset x="50" y="40"/></graphics>
+          </name>
+          <graphics>
+            <position x="50" y="50"/>
+            <dimension x="40" y="40"/>
+          </graphics>
+        </place>
+        
+        <place id="sub_p2">
+          <name>
+            <text>Payment End</text>
+            <graphics><offset x="200" y="40"/></graphics>
+          </name>
+          <graphics>
+            <position x="200" y="50"/>
+            <dimension x="40" y="40"/>
+          </graphics>
+        </place>
+        
+        <transition id="sub_t1">
+          <name>
+            <text>Process</text>
+            <graphics><offset x="125" y="60"/></graphics>
+          </name>
+          <graphics>
+            <position x="125" y="50"/>
+            <dimension x="40" y="40"/>
+          </graphics>
+        </transition>
+        
+        <arc id="sub_a1" source="sub_p1" target="sub_t1">
+          <inscription><text>1</text></inscription>
+        </arc>
+        
+        <arc id="sub_a2" source="sub_t1" target="sub_p2">
+          <inscription><text>1</text></inscription>
+        </arc>
+      </net>
+    </page>
+    
+  </net>
+</pnml>

@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Created with Workflow PetriNet Designer Version 3.9.2 (woped.org)
+Manual editing may break compatibility.-->
+<pnml>
+  <net type="http://www.informatik.hu-berlin.de/top/pntd/ptNetb" id="ThreePhaseSaga">
+    <place id="p_executed">
+      <name>
+        <text>EXECUTED</text>
+        <graphics>
+          <offset x="680" y="40"/>
+        </graphics>
+      </name>
+      <graphics>
+        <position x="700" y="100"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+    </place>
+    <place id="r_reserved">
+      <name>
+        <text>RESERVED_POOL</text>
+        <graphics>
+          <offset x="380" y="220"/>
+        </graphics>
+      </name>
+      <graphics>
+        <position x="400" y="250"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="3PS" version="1.0">
+        <resourceType>reservation-pool</resourceType>
+        <reservations>
+          <!--Could list active reservations here-->
+        </reservations>
+      </toolspecific>
+    </place>
+    <place id="p_reserved">
+      <name>
+        <text>RESERVED</text>
+        <graphics>
+          <offset x="290" y="80"/>
+        </graphics>
+      </name>
+      <graphics>
+        <position x="300" y="110"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="3PS" version="1.0">
+        <ttl>300</ttl>
+        <!--5 minute TTL-->
+        <expirationBehavior>auto-release</expirationBehavior>
+      </toolspecific>
+    </place>
+    <place id="p_validated">
+      <name>
+        <text>VALIDATED</text>
+        <graphics>
+          <offset x="520" y="50"/>
+        </graphics>
+      </name>
+      <graphics>
+        <position x="540" y="110"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+    </place>
+    <place id="r_available">
+      <name>
+        <text>AVAILABLE</text>
+        <graphics>
+          <offset x="180" y="220"/>
+        </graphics>
+      </name>
+      <graphics>
+        <position x="200" y="250"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <initialMarking>
+        <text>100</text>
+      </initialMarking>
+      <toolspecific tool="3PS" version="1.0">
+        <resourceType>inventory</resourceType>
+        <capacity>100</capacity>
+      </toolspecific>
+    </place>
+    <place id="p_idle">
+      <name>
+        <text>IDLE</text>
+        <graphics>
+          <offset x="60" y="80"/>
+        </graphics>
+      </name>
+      <graphics>
+        <position x="80" y="140"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <initialMarking>
+        <text>3</text>
+      </initialMarking>
+    </place>
+    <transition id="t_execute">
+      <name>
+        <text>EXECUTE</text>
+        <graphics>
+          <offset x="600" y="240"/>
+        </graphics>
+      </name>
+      <graphics>
+        <position x="610" y="250"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="3PS" version="1.0">
+        <phase>3</phase>
+        <behavior>commit</behavior>
+        <idempotent>true</idempotent>
+      </toolspecific>
+      <toolspecific tool="WoPeD" version="1.0">
+        <time>0</time>
+        <timeUnit>1</timeUnit>
+        <orientation>1</orientation>
+      </toolspecific>
+    </transition>
+    <transition id="t_reserve">
+      <name>
+        <text>RESERVE</text>
+        <graphics>
+          <offset x="190" y="140"/>
+        </graphics>
+      </name>
+      <graphics>
+        <position x="200" y="150"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="3PS" version="1.0">
+        <phase>1</phase>
+        <behavior>optimistic</behavior>
+        <guard>available >= requested</guard>
+      </toolspecific>
+      <toolspecific tool="WoPeD" version="1.0">
+        <time>0</time>
+        <timeUnit>1</timeUnit>
+        <orientation>1</orientation>
+      </toolspecific>
+    </transition>
+    <transition id="t_validate">
+      <name>
+        <text>VALIDATE</text>
+        <graphics>
+          <offset x="390" y="140"/>
+        </graphics>
+      </name>
+      <graphics>
+        <position x="400" y="150"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="3PS" version="1.0">
+        <phase>2</phase>
+        <behavior>read-only</behavior>
+        <guard>total_reserved + available >= capacity</guard>
+        <conflictDetection>true</conflictDetection>
+      </toolspecific>
+      <toolspecific tool="WoPeD" version="1.0">
+        <time>0</time>
+        <timeUnit>1</timeUnit>
+        <orientation>1</orientation>
+      </toolspecific>
+    </transition>
+    <transition id="t_timeout">
+      <name>
+        <text>TIMEOUT</text>
+        <graphics>
+          <offset x="290" y="290"/>
+        </graphics>
+      </name>
+      <graphics>
+        <position x="300" y="300"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="3PS" version="1.0">
+        <type>timed</type>
+        <delay>300</delay>
+        <delayUnit>seconds</delayUnit>
+        <priority>1</priority>
+      </toolspecific>
+      <toolspecific tool="WoPeD" version="1.0">
+        <time>0</time>
+        <timeUnit>1</timeUnit>
+        <orientation>1</orientation>
+      </toolspecific>
+    </transition>
+    <arc id="a1" source="p_idle" target="t_reserve">
+      <inscription>
+        <text>1</text>
+        <graphics>
+          <offset x="500.0" y="-12.0"/>
+        </graphics>
+      </inscription>
+      <graphics/>
+      <toolspecific tool="WoPeD" version="1.0">
+        <probability>1.0</probability>
+        <displayProbabilityOn>false</displayProbabilityOn>
+        <displayProbabilityPosition x="500.0" y="12.0"/>
+      </toolspecific>
+    </arc>
+    <arc id="a2" source="r_available" target="t_reserve">
+      <inscription>
+        <text>1</text>
+        <graphics>
+          <offset x="500.0" y="-12.0"/>
+        </graphics>
+      </inscription>
+      <graphics/>
+      <toolspecific tool="WoPeD" version="1.0">
+        <probability>1.0</probability>
+        <displayProbabilityOn>false</displayProbabilityOn>
+        <displayProbabilityPosition x="500.0" y="12.0"/>
+      </toolspecific>
+    </arc>
+    <arc id="a3" source="t_reserve" target="p_reserved">
+      <inscription>
+        <text>1</text>
+        <graphics>
+          <offset x="500.0" y="-12.0"/>
+        </graphics>
+      </inscription>
+      <graphics/>
+      <toolspecific tool="WoPeD" version="1.0">
+        <probability>1.0</probability>
+        <displayProbabilityOn>false</displayProbabilityOn>
+        <displayProbabilityPosition x="500.0" y="12.0"/>
+      </toolspecific>
+    </arc>
+    <arc id="a4" source="t_reserve" target="r_reserved">
+      <inscription>
+        <text>1</text>
+        <graphics>
+          <offset x="500.0" y="-12.0"/>
+        </graphics>
+      </inscription>
+      <graphics/>
+      <toolspecific tool="WoPeD" version="1.0">
+        <probability>1.0</probability>
+        <displayProbabilityOn>false</displayProbabilityOn>
+        <displayProbabilityPosition x="500.0" y="12.0"/>
+      </toolspecific>
+    </arc>
+    <arc id="a5" source="r_reserved" target="t_validate">
+      <inscription>
+        <text>1</text>
+        <graphics>
+          <offset x="500.0" y="-12.0"/>
+        </graphics>
+      </inscription>
+      <graphics/>
+      <toolspecific tool="WoPeD" version="1.0">
+        <probability>1.0</probability>
+        <displayProbabilityOn>false</displayProbabilityOn>
+        <displayProbabilityPosition x="500.0" y="12.0"/>
+      </toolspecific>
+    </arc>
+    <toolspecific tool="WoPeD" version="3.9.2">
+      <bounds>
+        <position x="11" y="33"/>
+        <dimension x="968" y="648"/>
+      </bounds>
+      <scale>100</scale>
+      <treeWidthRight>648</treeWidthRight>
+      <overviewPanelVisible>true</overviewPanelVisible>
+      <treeHeightOverview>100</treeHeightOverview>
+      <treePanelVisible>true</treePanelVisible>
+      <verticalLayout>false</verticalLayout>
+      <resources/>
+      <simulations/>
+      <partnerLinks/>
+      <variables/>
+    </toolspecific>
+    <toolspecific tool="3PS" version="1.0">
+      <colorSets>
+        <colorSet id="Transaction" type="record">
+          <field name="txId" type="string"/>
+          <field name="participants" type="set(string)"/>
+          <field name="resources" type="map(string,int)"/>
+        </colorSet>
+        <colorSet id="Reservation" type="record">
+          <field name="txId" type="string"/>
+          <field name="resourceId" type="string"/>
+          <field name="amount" type="int"/>
+          <field name="createdAt" type="timestamp"/>
+          <field name="expiresAt" type="timestamp"/>
+        </colorSet>
+      </colorSets>
+    </toolspecific>
+  </net>
+</pnml>

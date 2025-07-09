@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+  <net type="http://www.pnml.org/version-2009/grammar/hlpng" id="ECommerceSystem">
+    <name><text>E-Commerce 3PS System</text></name>
+    
+    <!-- Top Level: System Components -->
+    <place id="customer_request">
+      <name><text>Customer Orders</text></name>
+      <graphics><position x="50" y="300"/></graphics>
+      <initialMarking><text>1</text></initialMarking>
+      <toolspecific tool="3PS" version="1.0">
+        <placeType>entry-point</placeType>
+        <tokenType>OrderRequest</tokenType>
+      </toolspecific>
+    </place>
+    
+    <place id="order_result">
+      <name><text>Order Results</text></name>
+      <graphics><position x="950" y="300"/></graphics>
+      <toolspecific tool="3PS" version="1.0">
+        <placeType>exit-point</placeType>
+        <tokenType>OrderResult</tokenType>
+      </toolspecific>
+    </place>
+    
+    <!-- Substitution Transitions for Major Components -->
+    <transition id="coordinator_subnet">
+      <name><text>3PS Coordinator</text></name>
+      <graphics>
+        <position x="300" y="300"/>
+        <dimension x="80" y="40"/>
+      </graphics>
+      <toolspecific tool="WoPeD" version="1.0">
+        <subprocess>true</subprocess>
+      </toolspecific>
+    </transition>
+    
+    <transition id="message_hub_subnet">
+      <name><text>Message Hub</text></name>
+      <graphics>
+        <position x="500" y="300"/>
+        <dimension x="80" y="40"/>
+      </graphics>
+      <toolspecific tool="WoPeD" version="1.0">
+        <subprocess>true</subprocess>
+      </toolspecific>
+    </transition>
+    
+    <transition id="services_subnet">
+      <name><text>Microservices</text></name>
+      <graphics>
+        <position x="700" y="300"/>
+        <dimension x="80" y="40"/>
+      </graphics>
+      <toolspecific tool="WoPeD" version="1.0">
+        <subprocess>true</subprocess>
+      </toolspecific>
+    </transition>
+    
+    <!-- Main Flow Arcs -->
+    <arc id="a1" source="customer_request" target="coordinator_subnet"/>
+    <arc id="a2" source="coordinator_subnet" target="message_hub_subnet"/>
+    <arc id="a3" source="message_hub_subnet" target="services_subnet"/>
+    <arc id="a4" source="services_subnet" target="message_hub_subnet"/>
+    <arc id="a5" source="message_hub_subnet" target="coordinator_subnet"/>
+    <arc id="a6" source="coordinator_subnet" target="order_result"/>
+    
+    <!-- SUBNET: 3PS Coordinator -->
+    <page id="coordinator_subnet">
+      <net id="coordinator_net">
+        
+        <place id="coord_idle">
+          <name><text>Coordinator Idle</text></name>
+          <graphics><position x="100" y="100"/></graphics>
+          <initialMarking><text>1</text></initialMarking>
+        </place>
+        
+        <place id="coord_reserving">
+          <name><text>Phase 1: Reserving</text></name>
+          <graphics><position x="300" y="100"/></graphics>
+        </place>
+        
+        <place id="coord_validating">
+          <name><text>Phase 2: Validating</text></name>
+          <graphics><position x="500" y="100"/></graphics>
+        </place>
+        
+        <place id="coord_executing">
+          <name><text>Phase 3: Executing</text></name>
+          <graphics><position x="700" y="100"/></graphics>
+        </place>
+        
+        <place id="pending_responses">
+          <name><text>Pending Responses</text></name>
+          <graphics><position x="400" y="250"/></graphics>
+          <toolspecific tool="3PS" version="1.0">
+            <multiset>true</multiset>
+            <expectedResponses>
+              <service>payment</service>
+              <service>inventory</service>
+              <service>shipping</service>
+            </expectedResponses>
+          </toolspecific>
+        </place>
+        
+        <transition id="start_transaction">
+          <name><text>Start Transaction</text></name>
+          <graphics><position x="200" y="100"/></graphics>
+          <toolspecific tool="3PS" version="1.0">
+            <action>
+              <generateTxId/>
+              <initializeTracking/>
+            </action>
+          </toolspecific>
+        </transition>
+        
+        <transition id="send_reserve_requests">
+          <name><text>Send Reserve</text></name>
+          <graphics><position x="400" y="100"/></graphics>
+          <toolspecific tool="3PS" version="1.0">
+            <broadcast>
+              <message type="RESERVE_REQUEST"/>
+              <recipients>all-participants</recipients>
+            </broadcast>
+          </toolspecific>
+        </transition>
+        
+        <transition id="collect_reserve_responses">
+          <name><text>Collect Reserves</text></name>
+          <graphics><position x="400" y="200"/></graphics>
+          <toolspecific tool="3PS" version="1.0">
+            <guard>all_responses_received</guard>
+            <timeout>30</timeout>
+          </toolspecific>
+        </transition>
+        
+        <transition id="send_validate_requests">
+          <name><text>Send Validate</text></name>
+          <graphics><position x="600" y="100"/></graphics>
+        </transition>
+        
+        <transition id="send_execute_requests">
+          <name><text>Send Execute</text></name>
+          <graphics><position x="800" y="100"/></graphics>
+        </transition>
+        
+        <!-- Coordinator flow arcs -->
+        <arc source="coord_idle" target="start_transaction"/>
+        <arc source="start_transaction" target="coord_reserving"/>
+        <arc source="coord_reserving" target="send_reserve_requests"/>
+        <arc source="send_reserve_requests" target="pending_responses">
+          <inscription><text>3</text></inscription> <!-- 3 services -->
+        </arc>
+        <arc source="pending_responses" target="collect_reserve_responses">
+          <inscription><text>3</text></inscription>
+        </arc>
+        <arc source="collect_reserve_responses" target="coord_validating"/>
+        <!-- Similar for validate and execute phases -->
+        
+      </net>
+    </page>
+    
+    <!-- SUBNET: Message Hub -->
+    <page id="message_hub_subnet">
+      <net id="message_hub_net">
+        
+        <!-- Message Queues for Each Service -->
+        <place id="payment_queue_in">
+          <name><text>Payment In</text></name>
+          <graphics><position x="100" y="100"/></graphics>
+          <toolspecific tool="3PS" version="1.0">
+            <queueType>FIFO</queueType>
+            <persistence>true</persistence>
+          </toolspecific>
+        </place>
+        
+        <place id="payment_queue_out">
+          <name><text>Payment Out</text></name>
+          <graphics><position x="200" y="100"/></graphics>
+        </place>
+        
+        <place id="inventory_queue_in">
+          <name><text>Inventory In</text></name>
+          <graphics><position x="100" y="200"/></graphics>
+        </place>
+        
+        <place id="inventory_queue_out">
+          <name><text>Inventory Out</text></name>
+          <graphics><position x="200" y="200"/></graphics>
+        </place>
+        
+        <place id="shipping_queue_in">
+          <name><text>Shipping In</text></name>
+          <graphics><position x="100" y="300"/></graphics>
+        </place>
+        
+        <place id="shipping_queue_out">
+          <name><text>Shipping Out</text></name>
+          <graphics><position x="200" y="300"/></graphics>
+        </place>
+        
+        <!-- Message Router -->
+        <transition id="route_to_services">
+          <name><text>Route to Services</text></name>
+          <graphics><position x="300" y="200"/></graphics>
+          <toolspecific tool="3PS" version="1.0">
+            <router>
+              <rule>
+                <if>message.recipient == 'payment'</if>
+                <then>payment_queue_in</then>
+              </rule>
+              <rule>
+                <if>message.recipient == 'inventory'</if>
+                <then>inventory_queue_in</then>
+              </rule>
+              <rule>
+                <if>message.recipient == 'shipping'</if>
+                <then>shipping_queue_in</then>
+              </rule>
+            </router>
+          </toolspecific>
+        </transition>
+        
+        <transition id="collect_responses">
+          <name><text>Collect Responses</text></name>
+          <graphics><position x="500" y="200"/></graphics>
+        </transition>
+        
+      </net>
+    </page>
+    
+    <!-- SUBNET: Microservices Container -->
+    <page id="services_subnet">
+      <net id="services_container">
+        
+        <!-- Service Subnets -->
+        <transition id="payment_service">
+          <name><text>Payment Service</text></name>
+          <graphics><position x="200" y="100"/></graphics>
+          <toolspecific tool="WoPeD" version="1.0">
+            <subprocess>true</subprocess>
+          </toolspecific>
+        </transition>
+        
+        <transition id="inventory_service">
+          <name><text>Inventory Service</text></name>
+          <graphics><position x="200" y="200"/></graphics>
+          <toolspecific tool="WoPeD" version="1.0">
+            <subprocess>true</subprocess>
+          </toolspecific>
+        </transition>
+        
+        <transition id="shipping_service">
+          <name><text>Shipping Service</text></name>
+          <graphics><position x="200" y="300"/></graphics>
+          <toolspecific tool="WoPeD" version="1.0">
+            <subprocess>true</subprocess>
+          </toolspecific>
+        </transition>
+        
+      </net>
+    </page>
+    
+    <!-- SUBNET: Payment Service -->
+    <page id="payment_service">
+      <net id="payment_net">
+        
+        <place id="payment_idle">
+          <name><text>Idle</text></name>
+          <graphics><position x="100" y="150"/></graphics>
+          <initialMarking><text>1</text></initialMarking>
+        </place>
+        
+        <place id="payment_reserved">
+          <name><text>Funds Reserved</text></name>
+          <graphics><position x="300" y="150"/></graphics>
+          <toolspecific tool="3PS" version="1.0">
+            <ttl>300</ttl>
+            <reservation>
+              <amount>variable</amount>
+              <cardToken>encrypted</cardToken>
+            </reservation>
+          </toolspecific>
+        </place>
+        
+        <place id="payment_validated">
+          <name><text>Validated</text></name>
+          <graphics><position x="500" y="150"/></graphics>
+        </place>
+        
+        <place id="payment_completed">
+          <name><text>Payment Captured</text></name>
+          <graphics><position x="700" y="150"/></graphics>
+        </place>
+        
+        <place id="payment_funds_available">
+          <name><text>Available Credit</text></name>
+          <graphics><position x="300" y="50"/></graphics>
+          <initialMarking><text>10000</text></initialMarking> <!-- $10,000 credit limit -->
+        </place>
+        
+        <transition id="reserve_payment">
+          <name><text>Reserve Funds</text></name>
+          <graphics><position x="200" y="150"/></graphics>
+          <toolspecific tool="3PS" version="1.0">
+            <phase>1</phase>
+            <operation>
+              <checkFraud/>
+              <validateCard/>
+              <createAuthorization/>
+            </operation>
+          </toolspecific>
+        </transition>
+        
+        <transition id="validate_payment">
+          <name><text>Validate</text></name>
+          <graphics><position x="400" y="150"/></graphics>
+          <toolspecific tool="3PS" version="1.0">
+            <phase>2</phase>
+            <operation>
+              <checkAuthorizationValid/>
+              <verifyNoChargebacks/>
+            </operation>
+          </toolspecific>
+        </transition>
+        
+        <transition id="execute_payment">
+          <name><text>Capture Payment</text></name>
+          <graphics><position x="600" y="150"/></graphics>
+          <toolspecific tool="3PS" version="1.0">
+            <phase>3</phase>
+            <operation>
+              <captureAuthorization/>
+              <sendToBank/>
+            </operation>
+          </toolspecific>
+        </transition>
+        
+        <transition id="timeout_payment">
+          <name><text>Timeout Release</text></name>
+          <graphics><position x="300" y="250"/></graphics>
+          <toolspecific tool="3PS" version="1.0">
+            <type>timed</type>
+            <delay>300</delay>
+          </toolspecific>
+        </transition>
+        
+        <!-- Payment service arcs -->
+        <arc source="payment_idle" target="reserve_payment"/>
+        <arc source="payment_funds_available" target="reserve_payment">
+          <inscription><text>amount</text></inscription>
+        </arc>
+        <arc source="reserve_payment" target="payment_reserved"/>
+        <arc source="payment_reserved" target="validate_payment"/>
+        <arc source="validate_payment" target="payment_validated"/>
+        <arc source="payment_validated" target="execute_payment"/>
+        <arc source="execute_payment" target="payment_completed"/>
+        
+        <!-- Timeout path -->
+        <arc source="payment_reserved" target="timeout_payment"/>
+        <arc source="timeout_payment" target="payment_idle"/>
+        <arc source="timeout_payment" target="payment_funds_available">
+          <inscription><text>amount</text></inscription>
+        </arc>
+        
+      </net>
+    </page>
+    
+    <!-- SUBNET: Inventory Service -->
+    <page id="inventory_service">
+      <net id="inventory_net">
+        
+        <place id="inventory_idle">
+          <name><text>Idle</text></name>
+          <graphics><position x="100" y="150"/></graphics>
+          <initialMarking><text>1</text></initialMarking>
+        </place>
+        
+        <place id="inventory_reserved">
+          <name><text>Items Reserved</text></name>
+          <graphics><position x="300" y="150"/></graphics>
+        </place>
+        
+        <place id="available_stock">
+          <name><text>Available Stock</text></name>
+          <graphics><position x="300" y="50"/></graphics>
+          <initialMarking><text>100</text></initialMarking>
+          <toolspecific tool="3PS" version="1.0">
+            <stockKeepingUnit>SKU-12345</stockKeepingUnit>
+            <warehouse>primary</warehouse>
+          </toolspecific>
+        </place>
+        
+        <place id="reserved_stock">
+          <name><text>Reserved Stock</text></name>
+          <graphics><position x="500" y="50"/></graphics>
+          <initialMarking><text>0</text></initialMarking>
+        </place>
+        
+        <transition id="reserve_inventory">
+          <name><text>Reserve Items</text></name>
+          <graphics><position x="200" y="150"/></graphics>
+          <toolspecific tool="3PS" version="1.0">
+            <guard>available_stock >= requested_quantity</guard>
+          </toolspecific>
+        </transition>
+        
+        <transition id="validate_inventory">
+          <name><text>Validate</text></name>
+          <graphics><position x="400" y="150"/></graphics>
+          <toolspecific tool="3PS" version="1.0">
+            <operation>
+              <checkNoOversell/>
+              <verifyStockLocation/>
+            </operation>
+          </toolspecific>
+        </transition>
+        
+        <!-- Similar structure for inventory -->
+        
+      </net>
+    </page>
+    
+    <!-- Global Token Types -->
+    <toolspecific tool="3PS" version="1.0">
+      <declarations>
+        <colorSet id="OrderRequest" type="record">
+          <field name="orderId" type="string"/>
+          <field name="customerId" type="string"/>
+          <field name="items" type="list(Item)"/>
+          <field name="paymentMethod" type="PaymentMethod"/>
+          <field name="shippingAddress" type="Address"/>
+        </colorSet>
+        
+        <colorSet id="TransactionContext" type="record">
+          <field name="txId" type="string"/>
+          <field name="orderId" type="string"/>
+          <field name="phase" type="Phase"/>
+          <field name="participants" type="set(ServiceId)"/>
+          <field name="timestamp" type="timestamp"/>
+          <field name="ttl" type="duration"/>
+        </colorSet>
+        
+        <colorSet id="ServiceMessage" type="record">
+          <field name="txId" type="string"/>
+          <field name="sender" type="ServiceId"/>
+          <field name="recipient" type="ServiceId"/>
+          <field name="messageType" type="MessageType"/>
+          <field name="payload" type="any"/>
+        </colorSet>
+        
+        <type id="Phase" type="enum">
+          <value>RESERVE</value>
+          <value>VALIDATE</value>
+          <value>EXECUTE</value>
+        </type>
+        
+        <type id="MessageType" type="enum">
+          <value>RESERVE_REQUEST</value>
+          <value>RESERVE_RESPONSE</value>
+          <value>VALIDATE_REQUEST</value>
+          <value>VALIDATE_RESPONSE</value>
+          <value>EXECUTE_REQUEST</value>
+          <value>EXECUTE_RESPONSE</value>
+          <value>ABORT_REQUEST</value>
+        </type>
+      </declarations>
+    </toolspecific>
+    
+  </net>
+</pnml>
