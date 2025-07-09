@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+  <net type="http://www.pnml.org/version-2009/grammar/ptnet" id="ThreePhaseSaga">
+    
+    <!-- Participant States -->
+    <place id="p_idle">
+      <name>
+        <text>IDLE</text>
+        <graphics><offset x="80" y="35"/></graphics>
+      </name>
+      <graphics>
+        <position x="100" y="100"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <initialMarking>
+        <text>3</text>  <!-- 3 participants -->
+      </initialMarking>
+    </place>
+    
+    <place id="p_reserved">
+      <name>
+        <text>RESERVED</text>
+        <graphics><offset x="280" y="35"/></graphics>
+      </name>
+      <graphics>
+        <position x="300" y="100"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="3PS" version="1.0">
+        <ttl>300</ttl>  <!-- 5 minute TTL -->
+        <expirationBehavior>auto-release</expirationBehavior>
+      </toolspecific>
+    </place>
+    
+    <place id="p_validated">
+      <name>
+        <text>VALIDATED</text>
+        <graphics><offset x="480" y="35"/></graphics>
+      </name>
+      <graphics>
+        <position x="500" y="100"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+    </place>
+    
+    <place id="p_executed">
+      <name>
+        <text>EXECUTED</text>
+        <graphics><offset x="680" y="35"/></graphics>
+      </name>
+      <graphics>
+        <position x="700" y="100"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+    </place>
+    
+    <!-- Resource Places -->
+    <place id="r_available">
+      <name>
+        <text>AVAILABLE</text>
+        <graphics><offset x="180" y="215"/></graphics>
+      </name>
+      <graphics>
+        <position x="200" y="250"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <initialMarking>
+        <text>100</text>  <!-- 100 units available -->
+      </initialMarking>
+      <toolspecific tool="3PS" version="1.0">
+        <resourceType>inventory</resourceType>
+        <capacity>100</capacity>
+      </toolspecific>
+    </place>
+    
+    <place id="r_reserved">
+      <name>
+        <text>RESERVED_POOL</text>
+        <graphics><offset x="380" y="215"/></graphics>
+      </name>
+      <graphics>
+        <position x="400" y="250"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="3PS" version="1.0">
+        <resourceType>reservation-pool</resourceType>
+        <reservations>
+          <!-- Could list active reservations here -->
+        </reservations>
+      </toolspecific>
+    </place>
+    
+    <!-- Transitions -->
+    <transition id="t_reserve">
+      <name>
+        <text>RESERVE</text>
+        <graphics><offset x="190" y="135"/></graphics>
+      </name>
+      <graphics>
+        <position x="200" y="150"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="3PS" version="1.0">
+        <phase>1</phase>
+        <behavior>optimistic</behavior>
+        <guard>available >= requested</guard>
+      </toolspecific>
+    </transition>
+    
+    <transition id="t_validate">
+      <name>
+        <text>VALIDATE</text>
+        <graphics><offset x="390" y="135"/></graphics>
+      </name>
+      <graphics>
+        <position x="400" y="150"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="3PS" version="1.0">
+        <phase>2</phase>
+        <behavior>read-only</behavior>
+        <guard>total_reserved + available >= capacity</guard>
+        <conflictDetection>true</conflictDetection>
+      </toolspecific>
+    </transition>
+    
+    <transition id="t_execute">
+      <name>
+        <text>EXECUTE</text>
+        <graphics><offset x="590" y="135"/></graphics>
+      </name>
+      <graphics>
+        <position x="600" y="150"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="3PS" version="1.0">
+        <phase>3</phase>
+        <behavior>commit</behavior>
+        <idempotent>true</idempotent>
+      </toolspecific>
+    </transition>
+    
+    <transition id="t_timeout">
+      <name>
+        <text>TIMEOUT</text>
+        <graphics><offset x="290" y="285"/></graphics>
+      </name>
+      <graphics>
+        <position x="300" y="300"/>
+        <dimension x="40" y="40"/>
+      </graphics>
+      <toolspecific tool="3PS" version="1.0">
+        <type>timed</type>
+        <delay>300</delay>
+        <delayUnit>seconds</delayUnit>
+        <priority>1</priority>
+      </toolspecific>
+    </transition>
+    
+    <!-- Arcs -->
+    <arc id="a1" source="p_idle" target="t_reserve">
+      <inscription><text>1</text></inscription>
+    </arc>
+    
+    <arc id="a2" source="r_available" target="t_reserve">
+      <inscription>
+        <text>requested</text>  <!-- Variable weight -->
+      </inscription>
+      <toolspecific tool="3PS" version="1.0">
+        <arcType>consume</arcType>
+        <variableWeight>true</variableWeight>
+      </toolspecific>
+    </arc>
+    
+    <arc id="a3" source="t_reserve" target="p_reserved">
+      <inscription><text>1</text></inscription>
+    </arc>
+    
+    <arc id="a4" source="t_reserve" target="r_reserved">
+      <inscription>
+        <text>requested</text>
+      </inscription>
+      <toolspecific tool="3PS" version="1.0">
+        <arcType>produce</arcType>
+        <reservation>
+          <transactionId>$txId</transactionId>
+          <amount>$requested</amount>
+          <timestamp>$now</timestamp>
+        </reservation>
+      </toolspecific>
+    </arc>
+    
+    <!-- Test arc for validation (read-only) -->
+    <arc id="a5" source="r_reserved" target="t_validate">
+      <type value="test"/>  <!-- Standard PNML test arc! -->
+      <inscription><text>all</text></inscription>
+    </arc>
+    
+    <!-- Colored tokens support -->
+    <toolspecific tool="3PS" version="1.0">
+      <colorSets>
+        <colorSet id="Transaction" type="record">
+          <field name="txId" type="string"/>
+          <field name="participants" type="set(string)"/>
+          <field name="resources" type="map(string,int)"/>
+        </colorSet>
+        <colorSet id="Reservation" type="record">
+          <field name="txId" type="string"/>
+          <field name="resourceId" type="string"/>
+          <field name="amount" type="int"/>
+          <field name="createdAt" type="timestamp"/>
+          <field name="expiresAt" type="timestamp"/>
+        </colorSet>
+      </colorSets>
+    </toolspecific>
+    
+  </net>
+</pnml>
